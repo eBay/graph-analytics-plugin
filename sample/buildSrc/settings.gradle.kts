@@ -4,7 +4,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
     }
-    includeBuild("../../graph-analytics-plugin")
+    includeBuild("../..")
 }
 
 dependencyResolutionManagement {

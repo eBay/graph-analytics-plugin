@@ -14,7 +14,7 @@ One of the libraries depends upon the other.
 
 For this demonstration, global project-wide settings are used to configure the plugin.
 These are defined in the
-[graph-analytics.gradle.kts](conventions/src/main/kotlin/convention/graph-analytics.gradle.kts)
+[graph-analytics.gradle.kts](buildSrc/src/main/kotlin/convention/graph-analytics.gradle.kts)
 convention plugin.
 
 The test support libraries appear to Gradle as if they are ordinary libraries.  A custom

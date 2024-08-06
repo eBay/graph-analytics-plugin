@@ -3,9 +3,7 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        google()
     }
-    includeBuild("graph-analytics-plugin")
 }
 
 dependencyResolutionManagement {
@@ -15,7 +13,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "graph-analytics"
-
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-includeBuild("sample")
+rootProject.name = "graph-analytics-plugin"

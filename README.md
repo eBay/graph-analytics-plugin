@@ -63,7 +63,7 @@ implementing custom
 [VertexAttributeCollector](graph-analytics-plugin/src/main/kotlin/com/ebay/plugins/graph/analytics/VertexAttributeCollector.kt)s.
 
 For an example, please refer to the sample project's
-[CustomVertexAttributeCollector](sample/conventions/src/main/kotlin/convention/graph-analytics.gradle.kts)
+[CustomVertexAttributeCollector](sample/buildSrc/src/main/kotlin/convention/graph-analytics.gradle.kts)
 
 ### Vertex Analysis Tasks
 
@@ -75,7 +75,7 @@ To add a custom vertex analysis task, the task must extend from the
 [BaseGraphInputOutputTask](graph-analytics-plugin/src/main/kotlin/com/ebay/plugins/graph/analytics/BaseGraphInputOutputTask.kt)
 class and be added to the `graphAnalytics` extension.  For an example, please refer to the
 sample project's
-[VertexClassAnalysisTask](sample/conventions/src/main/kotlin/convention/graph-analytics.gradle.kts)
+[VertexClassAnalysisTask](sample/buildSrc/src/main/kotlin/convention/graph-analytics.gradle.kts)
 task.
 
 ### Graph Data Consumer Tasks
@@ -100,7 +100,7 @@ hamcrest matchers, allowing for complex and custom conditions to be specified.
 
 For an example, please refer to the
 sample project's 
-[rule definitions](sample/conventions/src/main/kotlin/convention/graph-analytics.gradle.kts).
+[rule definitions](sample/buildSrc/src/main/kotlin/convention/graph-analytics.gradle.kts).
 
 Rule implementations are registered with the `validation` extension on the `graphAnalytics`
 extension.
