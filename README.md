@@ -213,3 +213,7 @@ The following are some related solutions which may be of interest:
 - [Graph Assert Plugin](https://github.com/jraska/modules-graph-assert)
 - [Graph Untangler Plugin](https://github.com/siggijons/graph-untangler-plugin)
 - [Talaoit Plugin](https://github.com/cdsap/Talaiot)
+
+## License
+
+Apache 2.0 - See [LICENSE](LICENSE.txt) for more information.
