@@ -47,7 +47,7 @@ later combined into a single graph.  Configurations falling into the `OTHER` buc
 ignored altogether.
 
 It is the job of the
-[ConfigurationClassifier](graph-analytics-plugin/src/main/kotlin/com/ebay/plugins/graph/analytics/ConfigurationClassifier.kt)
+[ConfigurationClassifier](src/main/kotlin/com/ebay/plugins/graph/analytics/ConfigurationClassifier.kt)
 to determine what bucket each Gradle configuration should be assigned to.
 
 In most scenarios,  the default classifier should be sufficient.  However, if you have custom
@@ -60,7 +60,7 @@ Some vertex attributes may be derived from information defined by the project mo
 be available at configuration-time.  For example, detecting whether or not a specific plugin
 was applied to the project.  Configuration-time data gathering such as this is performed by
 implementing custom
-[VertexAttributeCollector](graph-analytics-plugin/src/main/kotlin/com/ebay/plugins/graph/analytics/VertexAttributeCollector.kt)s.
+[VertexAttributeCollector](src/main/kotlin/com/ebay/plugins/graph/analytics/VertexAttributeCollector.kt)s.
 
 For an example, please refer to the sample project's
 [CustomVertexAttributeCollector](sample/buildSrc/src/main/kotlin/convention/graph-analytics.gradle.kts)
@@ -72,7 +72,7 @@ metrics then become part of the GraphML data file and are used in the manual ana
 as well as in graph validation.
 
 To add a custom vertex analysis task, the task must extend from the
-[BaseGraphInputOutputTask](graph-analytics-plugin/src/main/kotlin/com/ebay/plugins/graph/analytics/BaseGraphInputOutputTask.kt)
+[BaseGraphInputOutputTask](src/main/kotlin/com/ebay/plugins/graph/analytics/BaseGraphInputOutputTask.kt)
 class and be added to the `graphAnalytics` extension.  For an example, please refer to the
 sample project's
 [VertexClassAnalysisTask](sample/buildSrc/src/main/kotlin/convention/graph-analytics.gradle.kts)
@@ -82,7 +82,7 @@ task.
 
 Some tasks need to consume the graph data after it has been fully generated.  To facilitate this,
 tasks which extend
-[BaseGraphInputTask](graph-analytics-plugin/src/main/kotlin/com/ebay/plugins/graph/analytics/BaseGraphInputTask.kt)
+[BaseGraphInputTask](src/main/kotlin/com/ebay/plugins/graph/analytics/BaseGraphInputTask.kt)
 may be registered as consumers.
 
 ### Graph Validation
@@ -93,7 +93,7 @@ structures within the project (e.g., architectural layer restrictions) or to enf
 best practices, as defined by the project team.
 
 Graph validation is defined in terms of
-[GraphValidationRule](graph-analytics-plugin/src/main/kotlin/com/ebay/plugins/graph/analytics/validation/GraphValidationRule.kt)
+[GraphValidationRule](src/main/kotlin/com/ebay/plugins/graph/analytics/validation/GraphValidationRule.kt)
 implementations.  Each rule is defined by specifying a set of conditions which must be met
 which indicate a violation of the rule.  The conditions are specified in a manner similar to
 hamcrest matchers, allowing for complex and custom conditions to be specified.
