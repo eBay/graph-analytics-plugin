@@ -1,0 +1,12 @@
+.DS_Store
+.gradle
+.kotlin
+build
+
+# Android Studio / IntelliJ
+/.idea/*
+!/.idea/codeStyles
+!/.idea/runConfigurations/
+*.iws
+*.iml
+/local.properties
