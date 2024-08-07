@@ -156,7 +156,7 @@ Analysis process with some decent starting settings:
      - `Size` tab, use `height` ranking
        - Min size: 1
        - Max size: 50
-     - `Label Color` tab, use `degreeOut` and select a color palette
+     - `Label Color` tab, use `outDegree` and select a color palette
      - `Label Size` tab, leave at default
    - `Edges` appearance:
      - `Color` tab, use `class` partitioning and select a color palette
