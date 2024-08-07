@@ -1,0 +1,5 @@
+# Android Studio / IntelliJ
+/.idea/*
+!/.idea/codeStyles
+!/.idea/runConfigurations/
+/local.properties

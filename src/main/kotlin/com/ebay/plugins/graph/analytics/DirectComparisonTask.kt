@@ -22,15 +22,15 @@ internal abstract class DirectComparisonTask : BaseGraphPersistenceTask() {
      * Relative path to the project analysis graph file.
      */
     @get:Input
-    @set:Option(option = "base", description = "Path to the base graph file, relative to the project the task is run within")
-    internal abstract var baseFilePath: String
+    @set:Option(option = "before", description = "Path to the base graph file, relative to the project the task is run within")
+    internal abstract var beforeFilePath: String
 
     /**
      * Relative path to the changed project analysis graph file.
      */
     @get:Input
-    @set:Option(option = "changed", description = "Path to the graph file containing the changes, relative to the project the task is run within")
-    internal abstract var changedFilePath: String
+    @set:Option(option = "after", description = "Path to the graph file containing the changes, relative to the project the task is run within")
+    internal abstract var afterFilePath: String
 
     /**
      * The output location of this project's report.
@@ -40,17 +40,17 @@ internal abstract class DirectComparisonTask : BaseGraphPersistenceTask() {
 
     @TaskAction
     fun execute() {
-        val baseFile = projectLayout.projectDirectory.file(baseFilePath)
-        val changedFile = projectLayout.projectDirectory.file(changedFilePath)
+        val beforeFile = projectLayout.projectDirectory.file(beforeFilePath)
+        val afterFile = projectLayout.projectDirectory.file(afterFilePath)
 
-        val baseGraph = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
+        val beforeGraph = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
         val persistence = persistenceBuildService.get()
-        persistence.import(baseGraph, baseFile.asFile)
+        persistence.import(beforeGraph, beforeFile.asFile)
 
-        val changedGraph = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
-        persistence.import(changedGraph, changedFile.asFile)
+        val afterGraph = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
+        persistence.import(afterGraph, afterFile.asFile)
 
-        val report = GraphComparisonHelper().compare(baseGraph, changedGraph)
+        val report = GraphComparisonHelper().compare(beforeGraph, afterGraph)
 
         outputFile.get().asFile.writeText(report)
         logger.lifecycle("Graph analysis comparison report available at: file://${outputFile.asFile.get()}")
