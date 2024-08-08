@@ -2,10 +2,9 @@ package convention
 
 import com.ebay.plugins.graph.analytics.BaseGraphInputOutputTask
 import com.ebay.plugins.graph.analytics.EdgeInfo
-import com.ebay.plugins.graph.analytics.GraphExtension
 import com.ebay.plugins.graph.analytics.VertexAttributeCollector
 import com.ebay.plugins.graph.analytics.VertexInfo
-import com.ebay.plugins.graph.analytics.validation.GraphValidationExtension
+import com.ebay.plugins.graph.analytics.validation
 import com.ebay.plugins.graph.analytics.validation.GraphValidationRule
 import com.ebay.plugins.graph.analytics.validation.matchers.GraphMatchers.allOf
 import com.ebay.plugins.graph.analytics.validation.matchers.GraphMatchers.edgeTarget
@@ -58,11 +57,11 @@ abstract class VertexClassAnalysisTask : BaseGraphInputOutputTask() {
     }
 }
 
-extensions.getByType(GraphExtension::class).apply {
+graphAnalytics {
     vertexAttributeCollectors.add(CustomVertexAttributeCollector())
     analysisTasks.add(project.tasks.register("vertexClassAnalysis", VertexClassAnalysisTask::class))
 
-    extensions.getByType(GraphValidationExtension::class).apply {
+    validation {
         // Perform validation relative to the :app project's graph.  This gives us a complete
         // picture.  With the example rules defined below this is not actually required since
         // each module validates against metrics that are based only upn dependencies and do

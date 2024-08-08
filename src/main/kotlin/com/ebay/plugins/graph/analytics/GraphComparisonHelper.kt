@@ -7,12 +7,12 @@ import org.jgrapht.graph.DefaultDirectedGraph
  */
 internal class GraphComparisonHelper {
     fun compare(
-        baseGraph: DefaultDirectedGraph<VertexInfo, EdgeInfo>,
-        changedGraph: DefaultDirectedGraph<VertexInfo, EdgeInfo>,
+        beforeGraph: DefaultDirectedGraph<VertexInfo, EdgeInfo>,
+        afterGraph: DefaultDirectedGraph<VertexInfo, EdgeInfo>,
     ): String {
         val changes = mutableListOf<ComparisonChange>()
-        baseGraph.vertexSet().forEach { baseVertex ->
-            changedGraph.vertexSet().find { it.path == baseVertex.path }?.let { changedVertex ->
+        beforeGraph.vertexSet().forEach { baseVertex ->
+            afterGraph.vertexSet().find { it.path == baseVertex.path }?.let { changedVertex ->
                 baseVertex.attributes.forEach { (key, baseAttr) ->
                     changedVertex.attributes[key]?.let { changedAttr ->
                         changes.add(ComparisonChange(
@@ -28,8 +28,8 @@ internal class GraphComparisonHelper {
         }
 
         val report = buildString {
-            append("Graph nodes: ${baseGraph.vertexSet().size} before, ${changedGraph.vertexSet().size} after\n")
-            append("Graph edges: ${baseGraph.edgeSet().size} before, ${changedGraph.edgeSet().size} after\n")
+            append("Graph nodes: ${beforeGraph.vertexSet().size} before, ${afterGraph.vertexSet().size} after\n")
+            append("Graph edges: ${beforeGraph.edgeSet().size} before, ${afterGraph.edgeSet().size} after\n")
             append("\n")
 
             val deltas = changes.filter { it.comparisonResult != 0 }

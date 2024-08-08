@@ -23,5 +23,4 @@ vertex attribute collector is add a vertex attribute indicating whether or not a
 is then consumed by a custom vertex analysis task which assigns a project module into
 one of a small number of archetype categories ("api", "impl", "test-support", and "app").
 
-
-
+Try running the tasks outlined in the [README](../README.md) to see the plugin in action.
