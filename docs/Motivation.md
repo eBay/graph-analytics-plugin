@@ -1,17 +1,15 @@
 # Motivation
 
-At eBay, we have a very large and complex Android application that has evolved organically
-over many years.  Historically, the application was build from a small number of monolithic
-modules.
+When working with very large and complex Android applications that have evolved organically
+over many years, it can be difficult to understand how the project modules relate to one another.
+When the number of project modules increases beyond a certain point, it becomes an increasingly
+overwhelming task.
 
-As we have worked to transition this application to a more modular architecture, we have run
-into the need to better understand how the project modules relate to one another, surfacing
-opportunities for better factoring and unlocking better build performance.
-
-Very early on in this process, we realized that understanding the relationships between
-hundreds of project modules quickly became an overwhelming task.  Adding to that challenge
-was the need to provide automatic enforcement of key architectural concerns, such as
-maintaining proper isolation between API and implementation details.
+Adding to this challenge is the need to provide automatic enforcement of key architectural
+concerns, such as maintaining proper isolation between API and implementation details.
+The specific application of this sort of project structure rules tend to be very project- or
+team- specific.  Some solutions exist to help in this area but make assumptions that may not
+be suitable for many projects.
 
 As we surveyed the available tools, we found that none of them fully satisfied the
 requirements that we wanted to solve for, including:
