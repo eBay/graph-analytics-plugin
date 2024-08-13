@@ -1,6 +1,6 @@
 [versions]
 jgrapht = "1.5.2"
-test-hamcrest = "2.2"
+test-hamcrest = "3.0"
 test-junit5 = "5.10.2"
 test-mockito = "5.4.0"
 
