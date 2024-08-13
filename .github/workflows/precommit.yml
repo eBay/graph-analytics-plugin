@@ -2,7 +2,7 @@ name: PR Build
 on: [push]
 jobs:
   gradle:
-    runs-on: ubuntu-latest
+    runs-on: ebaymobile
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
