@@ -4,7 +4,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.jgrapht.nio.AttributeType
 import org.jgrapht.nio.DefaultAttribute
-import org.junit.jupiter.api.Test
+import org.testng.annotations.Test
 
 class GraphVertexInfoTest {
     @Test

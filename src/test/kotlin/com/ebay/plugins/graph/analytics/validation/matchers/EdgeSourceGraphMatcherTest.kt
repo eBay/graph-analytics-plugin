@@ -6,9 +6,9 @@ import com.ebay.plugins.graph.analytics.validation.RootedEdge
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.jgrapht.graph.DefaultDirectedGraph
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
+import org.testng.annotations.BeforeTest
+import org.testng.annotations.Test
 import com.ebay.plugins.graph.analytics.validation.matchers.GraphMatchers.equalTo as graphEqualTo
 
 class EdgeSourceGraphMatcherTest {
@@ -19,7 +19,7 @@ class EdgeSourceGraphMatcherTest {
     private lateinit var edge: EdgeInfo
     private lateinit var rootedEdge: RootedEdge
 
-    @BeforeEach
+    @BeforeTest
     fun setupUut() {
         root = VertexInfo(path = ":root")
         source = VertexInfo(path = ":source")

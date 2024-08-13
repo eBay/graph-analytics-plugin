@@ -6,7 +6,7 @@ import org.hamcrest.Matchers.not
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.nio.AttributeType
 import org.jgrapht.nio.DefaultAttribute
-import org.junit.jupiter.api.Test
+import org.testng.annotations.Test
 
 class GraphEdgeInfoTest {
     @Test

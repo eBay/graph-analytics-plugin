@@ -7,8 +7,8 @@ import com.ebay.plugins.graph.analytics.validation.matchers.GraphMatchers.path
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.jgrapht.graph.DefaultDirectedGraph
-import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
+import org.testng.annotations.Test
 import com.ebay.plugins.graph.analytics.validation.matchers.GraphMatchers.equalTo as graphEqualTo
 
 class VertexPathGraphMatcherTest {

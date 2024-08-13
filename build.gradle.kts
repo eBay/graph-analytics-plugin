@@ -26,9 +26,7 @@ dependencies {
 
     testImplementation(libs.test.hamcrest)
     testImplementation(libs.test.mockito.kotlin)
-    testImplementation(enforcedPlatform(libs.test.junit5.bom))
-    testImplementation(libs.test.junit5.jupiter)
-    testRuntimeOnly(libs.test.junit5.platformLauncher)
+    testImplementation(libs.test.testng)
 }
 
 java {
@@ -36,7 +34,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-project.tasks.withType(KotlinJvmCompile::class.java) {
+tasks.withType(KotlinJvmCompile::class.java) {
     compilerOptions {
         allWarningsAsErrors.set(true)
         jvmTarget.set(JvmTarget.JVM_11)
@@ -44,6 +42,6 @@ project.tasks.withType(KotlinJvmCompile::class.java) {
     }
 }
 
-project.tasks.withType(Test::class.java) {
-    useJUnitPlatform()
+tasks.withType<Test> {
+    useTestNG()
 }

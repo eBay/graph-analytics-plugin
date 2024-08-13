@@ -1,6 +1,6 @@
 package com.ebay.plugins.graph.analytics.validation.matchers
 
-import org.junit.jupiter.api.Test
+import org.testng.annotations.Test
 
 class DescribedMatchTest {
 

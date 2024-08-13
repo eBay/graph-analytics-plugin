@@ -1,8 +1,8 @@
 [versions]
 jgrapht = "1.5.2"
 test-hamcrest = "3.0"
-test-junit5 = "5.10.3"
 test-mockito = "5.4.0"
+test-testng = "7.10.2"
 
 [libraries]
 jgrapht-core = { module = "org.jgrapht:jgrapht-core", version.ref = "jgrapht" }
@@ -10,7 +10,5 @@ jgrapht-io = { module = "org.jgrapht:jgrapht-io", version.ref = "jgrapht" }
 
 ### Test Libraries
 test-hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "test-hamcrest" }
-test-junit5-bom = { module = "org.junit:junit-bom", version.ref = "test-junit5" }
-test-junit5-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
-test-junit5-platformLauncher = { module = "org.junit.platform:junit-platform-launcher" }
 test-mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "test-mockito" }
+test-testng = { module = "org.testng:testng", version.ref="test-testng" }

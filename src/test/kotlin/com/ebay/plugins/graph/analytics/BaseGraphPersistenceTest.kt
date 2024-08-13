@@ -9,17 +9,35 @@ import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.nio.Attribute
 import org.jgrapht.nio.AttributeType
 import org.jgrapht.nio.DefaultAttribute
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
+import org.testng.annotations.AfterMethod
+import org.testng.annotations.BeforeMethod
+import org.testng.annotations.Test
 import java.io.File
-import java.nio.file.Path
+import java.nio.file.Files
+import kotlin.io.path.ExperimentalPathApi
 
+@OptIn(ExperimentalPathApi::class)
 abstract class BaseGraphPersistenceTest {
 
     internal abstract val uut: GraphPersistence
 
+    private val tempDir: File by lazy {
+        Files.createTempDirectory(javaClass.simpleName).toFile()
+    }
+
+    @BeforeMethod
+    fun setupTempDir() {
+        tempDir.deleteRecursively()
+        tempDir.mkdirs()
+    }
+
+    @AfterMethod
+    fun cleanupTempDir() {
+        tempDir.deleteRecursively()
+    }
+
     @Test
-    fun vertexAttributeSupport(@TempDir tempDir: Path) {
+    fun vertexAttributeSupport() {
         val graph = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
 
         val attributes = mutableMapOf<String, Attribute>()
@@ -57,7 +75,7 @@ abstract class BaseGraphPersistenceTest {
 
         VertexInfo(path = ":1", attributes = attributes).also { graph.addVertex(it) }
 
-        val persisted = File(tempDir.toFile(), "graph.${uut.fileExtension}")
+        val persisted = File(tempDir, "graph.${uut.fileExtension}")
         uut.export(graph, persisted)
         println("persisted:\n${persisted.readText()}")
 
@@ -65,7 +83,7 @@ abstract class BaseGraphPersistenceTest {
         uut.import(imported, persisted)
 
         // For debugging, dump to console
-        val importedPersisted = File(tempDir.toFile(), "imported.${uut.fileExtension}")
+        val importedPersisted = File(tempDir, "imported.${uut.fileExtension}")
         uut.export(imported, importedPersisted)
         println("importedPersisted:\n${importedPersisted.readText()}")
 
@@ -89,7 +107,7 @@ abstract class BaseGraphPersistenceTest {
     }
 
     @Test
-    fun edgeAttributeSupport(@TempDir tempDir: Path) {
+    fun edgeAttributeSupport() {
         val graph = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
         val vertex1 = VertexInfo(path = ":1").also { graph.addVertex(it) }
         val vertex2 = VertexInfo(path = ":2").also { graph.addVertex(it) }
@@ -127,7 +145,7 @@ abstract class BaseGraphPersistenceTest {
             }
         })
 
-        val persisted = File(tempDir.toFile(), "graph.${uut.fileExtension}")
+        val persisted = File(tempDir, "graph.${uut.fileExtension}")
         uut.export(graph, persisted)
         println("persisted:\n${persisted.readText()}")
 
@@ -135,7 +153,7 @@ abstract class BaseGraphPersistenceTest {
         uut.import(imported, persisted)
 
         // For debugging, dump to console
-        val importedPersisted = File(tempDir.toFile(), "imported.${uut.fileExtension}")
+        val importedPersisted = File(tempDir, "imported.${uut.fileExtension}")
         uut.export(imported, importedPersisted)
         println("importedPersisted:\n${importedPersisted.readText()}")
 
@@ -160,7 +178,7 @@ abstract class BaseGraphPersistenceTest {
     }
 
     @Test
-    fun exportImport(@TempDir tempDir: Path) {
+    fun exportImport() {
         val graph = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
         val vertex1 = createVertexWithAttribute(path = ":1", attrId="v1").also { graph.addVertex(it) }
         val vertex2 = createVertexWithAttribute(path = ":2", attrId="v2").also { graph.addVertex(it) }
@@ -169,14 +187,14 @@ abstract class BaseGraphPersistenceTest {
         graph.addEdge(vertex3, vertex2, createEdgeWithAttribute("3_2"))
         graph.addEdge(vertex3, vertex1, createEdgeWithAttribute("3_1"))
 
-        val persisted = File(tempDir.toFile(), "graph.${uut.fileExtension}")
+        val persisted = File(tempDir, "graph.${uut.fileExtension}")
         uut.export(graph, persisted)
         println(persisted.readText())
 
         val imported = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
         uut.import(imported, persisted)
 
-        val importedPersisted = File(tempDir.toFile(), "imported.${uut.fileExtension}")
+        val importedPersisted = File(tempDir, "imported.${uut.fileExtension}")
         uut.export(imported, importedPersisted)
         println(importedPersisted.readText())
 
@@ -193,7 +211,7 @@ abstract class BaseGraphPersistenceTest {
     }
 
     @Test
-    fun graftedImports(@TempDir tempDir: Path) {
+    fun graftedImports() {
         val graph1 = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
         val vertex11 = VertexInfo(path = ":1_1").also { graph1.addVertex(it) }
         val vertex12 = VertexInfo(path = ":1_2").also { graph1.addVertex(it) }
@@ -201,7 +219,7 @@ abstract class BaseGraphPersistenceTest {
         graph1.addEdge(vertex12, vertex11, createEdgeWithAttribute("12_11"))
         graph1.addEdge(vertex13, vertex12, createEdgeWithAttribute("13_12"))
         graph1.addEdge(vertex13, vertex11, createEdgeWithAttribute("13_11"))
-        val persisted1 = File(tempDir.toFile(), "graph1.${uut.fileExtension}")
+        val persisted1 = File(tempDir, "graph1.${uut.fileExtension}")
         uut.export(graph1, persisted1)
 
         val graph2 = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
@@ -211,7 +229,7 @@ abstract class BaseGraphPersistenceTest {
         graph2.addEdge(vertex22, vertex21, createEdgeWithAttribute("22_21"))
         graph2.addEdge(vertex23, vertex22, createEdgeWithAttribute("23_22"))
         graph2.addEdge(vertex23, vertex21, createEdgeWithAttribute("23_22"))
-        val persisted2 = File(tempDir.toFile(), "graph2.${uut.fileExtension}")
+        val persisted2 = File(tempDir, "graph2.${uut.fileExtension}")
         uut.export(graph2, persisted2)
 
         val graph3 = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
@@ -220,7 +238,7 @@ abstract class BaseGraphPersistenceTest {
         graph3.addVertex(vertex23)
         graph3.addEdge(vertex31, vertex13, createEdgeWithAttribute("31_13"))
         graph3.addEdge(vertex31, vertex23, createEdgeWithAttribute("31_23"))
-        val persisted3 = File(tempDir.toFile(), "graph3.${uut.fileExtension}")
+        val persisted3 = File(tempDir, "graph3.${uut.fileExtension}")
         uut.export(graph3, persisted3)
 
         val imported = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
