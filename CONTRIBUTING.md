@@ -1,4 +1,4 @@
-# Contributing to opentracing-basic
+# Contributing to the Graph Analytics Plugin
 
 First, thank you for considering contributing to this project!
 
