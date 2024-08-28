@@ -150,6 +150,8 @@ internal class GraphAnalyticsPlugin : Plugin<Project> {
             task.apply {
                 group = TASK_GROUP
                 description = "Directly compare two existing graph files"
+                dependsOn(analysisTaskProvider) // In case one of the arguments is not provided
+                defaultAnalysisFile.set(analysisFile)
                 outputFile.set(directComparisonFile)
             }
         }

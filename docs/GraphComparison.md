@@ -10,11 +10,17 @@ the changes to the tracked metric values, using two GraphML analysis files as in
 ## Execution
 
 To inspect the project graph for a specific module, run the `graphComparison` task on the
-project module you wish to inspect.  This task takes two parameters:
+project module you wish to inspect.
+
+This task takes one or both of the following parameters:
 - `--before <path>` The path to the GraphML analysis file of the starting state
 - `--after <path>` The path to the GraphML analysis file of the end state
-For both parameters, absolute paths work.  If a relative path is specified it will be evaluated
-- relative to the project module's directory.
+
+If only one of these parameters is provided the other will be assumed to be the current
+analysis file for the project module.
+
+For both parameters, absolute paths work.  If a relative path is specified it will be evaluated 
+relative to the project module's directory where the task is being run.
 
 For example, in the [sample project](../sample) we could
 run:
@@ -26,6 +32,9 @@ cp app/build/graphAnalytics/analysis.graphml app/build/graphAnalytics/analysis-b
 ../gradlew :app:graphComparison \
     --before build/graphAnalytics/analysis-before.graphml \
     --after build/graphAnalytics/analysis.graphml
+# or...
+../gradlew :app:graphComparison \
+    --before build/graphAnalytics/analysis-before.graphml
 ```
 
 This will generate a report file at `app/build/graphAnalytics/directComparison.txt`.  The location
