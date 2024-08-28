@@ -82,4 +82,7 @@ guidelines on how to contribute.
 
 ## License
 
-Apache 2.0 - See [LICENSE](LICENSE.txt) for more information.
+This project is dual-licensed under the Eclipse Public License 2.0 and the Apache License
+Version 2.0.
+
+See [LICENSES](LICENSES.md) for more information.
