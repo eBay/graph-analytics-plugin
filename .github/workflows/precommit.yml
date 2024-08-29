@@ -1,5 +1,6 @@
 name: PR Build
-on: [push]
+on:
+  pull_request:
 jobs:
   gradle:
     runs-on: ubuntu-latest
