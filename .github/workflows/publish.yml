@@ -1,5 +1,6 @@
 name: Publish Gradle Plugin
 on:
+  push: # temporary, for testing prior to merge
   workflow_dispatch:
   release:
     types: [published]
