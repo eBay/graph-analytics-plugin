@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     `embedded-kotlin`
-    alias(libs.plugins.gradle.pluginPublish)
+    id("java-gradle-plugin")
 }
 
 group = "com.ebay"

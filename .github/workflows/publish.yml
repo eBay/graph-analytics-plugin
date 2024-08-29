@@ -1,5 +1,8 @@
-name: PR Build
-on: [push]
+name: Publish Gradle Plugin
+on: [workflow_dispatch]
+#on:
+#  release:
+#    types: [published]
 jobs:
   gradle:
     runs-on: ubuntu-latest
