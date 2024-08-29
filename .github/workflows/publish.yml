@@ -1,8 +1,8 @@
 name: Publish Gradle Plugin
-on: [workflow_dispatch]
-#on:
-#  release:
-#    types: [published]
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
 jobs:
   gradle:
     runs-on: ubuntu-latest
