@@ -1,4 +1,5 @@
 [versions]
+gradle-pluginPublish = "1.2.1"
 jgrapht = "1.5.2"
 test-hamcrest = "3.0"
 test-mockito = "5.4.0"
@@ -12,3 +13,6 @@ jgrapht-io = { module = "org.jgrapht:jgrapht-io", version.ref = "jgrapht" }
 test-hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "test-hamcrest" }
 test-mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "test-mockito" }
 test-testng = { module = "org.testng:testng", version.ref="test-testng" }
+
+[plugins]
+gradle-pluginPublish = { id = "com.gradle.plugin-publish", version.ref = "gradle-pluginPublish" }

@@ -3,16 +3,23 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     `embedded-kotlin`
-    id("java-gradle-plugin")
+    alias(libs.plugins.gradle.pluginPublish)
 }
 
 group = "com.ebay"
 
 gradlePlugin {
+    website = "https://github.com/ebay/graph-analytics-plugin"
+    vcsUrl = "https://github.com/ebay/graph-analytics-plugin.git"
     plugins {
         create("com.ebay.graph-analytics") {
             id = "com.ebay.graph-analytics"
             implementationClass = "com.ebay.plugins.graph.analytics.GraphAnalyticsPlugin"
+            displayName = "Graph Analytics Plugin"
+            description = "Gradle plugin to perform project graph analysis, assertion, and reporting for multi-module projects"
+            tags = listOf(
+                "graph", "analysis", "assert", "multiprojects", "module", "dependency-graph"
+            )
         }
     }
 }
