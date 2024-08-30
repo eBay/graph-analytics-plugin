@@ -1,5 +1,5 @@
 [versions]
-gradle-pluginPublish = "1.2.1"
+gradle-pluginPublish = "1.2.2"
 jgrapht = "1.5.2"
 test-hamcrest = "3.0"
 test-mockito = "5.4.0"
