@@ -1,3 +1,5 @@
+![Gradle Plugin Portal Version](https://img.shields.io/gradle-plugin-portal/v/com.ebay.graph-analytics)
+
 # Graph Analytics Plugin
 
 ## About This Project
@@ -79,6 +81,12 @@ For more information, please refer to the [Configuration](docs/Configuration.md)
 
 Contributions are welcome!  Please refer to the [CONTRIBUTING](CONTRIBUTING.md) document for
 guidelines on how to contribute.
+
+## Run Books
+
+The following documents describe various processes needed for operating and/or maintaining
+the plugin:
+- [Run Book: Release Process](docs/RunBook-ReleaseProcess.md)
 
 ## License
 
