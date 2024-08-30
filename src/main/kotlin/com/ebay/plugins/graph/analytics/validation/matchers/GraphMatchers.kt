@@ -85,7 +85,7 @@ object GraphMatchers {
      * Matcher which matches only if any of the delegate rules match the input.
      */
     @JvmStatic
-    fun <T> anyOf(vararg delegates: GraphMatcher<T>): GraphMatcher<T> {
+    fun <T> anyOf(vararg delegates: GraphMatcher<in T>): GraphMatcher<T> {
         return AnyOfGraphMatcher(delegates.toList())
     }
 
