@@ -7,6 +7,10 @@ pluginManagement {
     includeBuild("..")
 }
 
+plugins {
+    id("com.ebay.graph-analytics")
+}
+
 dependencyResolutionManagement {
     repositories {
         mavenCentral()

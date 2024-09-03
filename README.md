@@ -33,11 +33,12 @@ The plugin is designed to work with Gradle 8.8 or later.
 
 ## Usage
 
-To use, add the plugin to all modules in your project:
+To use, add the plugin your project's settings.gradle.kts file, as follows.  This will ensure
+that the plugin is applied to all project modules:
 ```kotlin
-// build.gradle.kts
+// settings.gradle.kts
 plugins {
-    id("com.ebay.graph-analytics") version("0.0.0")
+    id("com.ebay.graph-analytics") version("<current version goes here>")
 }
 ```
 
