@@ -9,6 +9,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.initialization.Settings
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.jgrapht.graph.DefaultDirectedGraph
@@ -19,8 +20,23 @@ import org.jgrapht.nio.DefaultAttribute
  * generate project dependency graph analytic data.
  */
 @Suppress("unused", "UnstableApiUsage")
-internal class GraphAnalyticsPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
+internal class GraphAnalyticsPlugin : Plugin<Any> {
+    override fun apply(target: Any) {
+        when (target) {
+            is Project -> applyProject(target)
+            is Settings -> applySettings(target)
+            else -> throw GradleException("GraphAnalyticsPlugin can only be applied to a Project")
+        }
+    }
+
+    private fun applySettings(settings: Settings) {
+        // Apply the plugin to all projects
+        settings.gradle.beforeProject { project ->
+            project.plugins.apply(GraphAnalyticsPlugin::class.java)
+        }
+    }
+
+    private fun applyProject(project: Project) {
         val graphPersistenceBuildServiceProvider = project.gradle.sharedServices.registerIfAbsent(
             GRAPH_PERSISTENCE_BUILD_SERVICE,
             GraphPersistenceBuildService::class.java,
