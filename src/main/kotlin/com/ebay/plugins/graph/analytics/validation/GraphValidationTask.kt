@@ -104,7 +104,7 @@ abstract class GraphValidationTask : BaseGraphPersistenceTask() {
 
         val totalReport = validationResults.joinToString(separator = "\n") { validationResult ->
             buildReportString(validationResult)
-        }
+        }.replace("\n", System.lineSeparator())
         outputFile.asFile.get().writeText(totalReport)
 
         val errors = validationResults.filterIsInstance<GraphValidation>()
