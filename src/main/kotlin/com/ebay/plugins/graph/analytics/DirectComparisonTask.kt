@@ -79,7 +79,9 @@ internal abstract class DirectComparisonTask : BaseGraphPersistenceTask() {
         val afterGraph = DefaultDirectedGraph<VertexInfo, EdgeInfo>(EdgeInfo::class.java)
         persistence.import(afterGraph, afterFile.asFile)
 
-        val report = GraphComparisonHelper().compare(beforeGraph, afterGraph)
+        val report = GraphComparisonHelper()
+            .compare(beforeGraph, afterGraph)
+            .replace("\n", System.lineSeparator())
 
         outputFile.get().asFile.writeText(report)
         logger.lifecycle("Graph analysis comparison report available at: file://${outputFile.asFile.get()}")

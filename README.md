@@ -78,6 +78,27 @@ project-specific metrics and rules can greatly extend its capabilities!
 
 For more information, please refer to the [Configuration](docs/Configuration.md) document.
 
+## Integrations
+
+### Metrics for Develocity
+
+Out-of-the-box, this plugin provides project graph information based upon the declared
+structure of the project.  When working to improve build performance, the next questions
+that naturally follow fall along the following lines:
+- How much build time does each project module contribute?
+- How many frequently are project modules built?
+
+To answer these questions, the
+[Metrics for Develocity](https://github.com/eBay/metrics-for-develocity-plugin)
+plugin can be used to gather this information from a
+[Develocity](https://gradle.com/gradle-enterprise-solutions/)
+server instance, layering this data into the project graph analysis performed by
+this plugin.
+
+For more information, see the
+[Project Cost Graph Analytics Integration](https://github.com/eBay/metrics-for-develocity-plugin/tree/main/src/main/kotlin/com/ebay/plugins/metrics/develocity/projectcost#project-cost-graph-analytics-integration)
+document.
+
 ## Contributing
 
 Contributions are welcome!  Please refer to the [CONTRIBUTING](CONTRIBUTING.md) document for

@@ -46,7 +46,7 @@ internal abstract class InspectionTask : BaseGraphInputTask() {
             append("Dependency tree:\n")
             addDependency(graph = graph, indent = "", vertex = selfInfo)
             append("* Indicates a vertex that has already been rendered\n")
-        }
+        }.replace("\n", System.lineSeparator())
 
         outputFile.asFile.get().writeText(report)
         logger.lifecycle("Project inspection analysis comparison report available at: file://${outputFile.asFile.get()}")
