@@ -185,7 +185,7 @@ internal abstract class InspectionTask : BaseGraphInputTask() {
             }
         }.sortedByDescending { (_, value) ->
             value
-        }.takeLast(TOP_N).map { it.first }
+        }.take(TOP_N).map { it.first }
 
         if (metricValues.isNotEmpty()) {
             appendLine("Top $TOP_N dependencies by '$attrName':")
