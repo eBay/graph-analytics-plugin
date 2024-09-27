@@ -9,6 +9,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.initialization.Settings
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
@@ -326,6 +327,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
             isCanBeConsumed = true
             isCanBeResolved = false
             isTransitive = false
+            attributes.attribute(ATTR_CONFIG_TYPE, name)
         }
     }
 
@@ -337,6 +339,15 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         const val ANALYSIS_TASK = "graphAnalysis"
         const val DIRECT_COMPARISON_TASK = "graphComparison"
         const val PROJECT_INSPECTION_TASK = "graphInspection"
+
+        /**
+         * Attribute used to disambiguate consumable configurations but something other than
+         * their name.
+         */
+        val ATTR_CONFIG_TYPE: Attribute<String> = Attribute.of(
+            "com.ebay.graph-analytics.type",
+            String::class.java
+        )
 
         private const val GATHER_PROD_DEPENDENCIES_RESOLVE_CONFIGURATION = "graphAnalytics_resolvable_prodDependencies"
         private const val GATHER_PROD_DEPENDENCIES_RESOLVE_TASK = "graphProductionDependencies"
