@@ -29,7 +29,7 @@ may be referenced:
 
 ## Requirements
 
-The plugin is designed to work with Gradle 8.8 or later.
+The plugin is designed to work with Gradle 8.11 or later.
 
 ## Usage
 
