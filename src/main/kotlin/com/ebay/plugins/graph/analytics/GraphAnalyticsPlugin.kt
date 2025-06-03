@@ -31,6 +31,17 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
     }
 
     private fun applySettings(settings: Settings) {
+        // Verify Gradle version compatibility
+        val (major, minor) = settings.gradle.gradleVersion
+            .substringBefore("-") // Remove any qualifier like `-rc-1`
+            .split('.')
+            .take(2)
+        if (major.toInt() < GRADLE_VERSION_MAJOR || minor.toInt() < GRADLE_VERSION_MINOR) {
+            throw GradleException("GraphAnalyticsPlugin requires Gradle " +
+                    "$GRADLE_VERSION_MAJOR.$GRADLE_VERSION_MINOR or later " +
+                    "(was: ${settings.gradle.gradleVersion})")
+        }
+
         // Apply the plugin to all projects
         settings.gradle.beforeProject { project ->
             project.plugins.apply(GraphAnalyticsPlugin::class.java)
@@ -238,7 +249,10 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                 }
 
                 val projectDependencies = config.allDependencies.filterIsInstance<ProjectDependency>()
-                projectDependencies.map { it.dependencyProject }.forEach { depProject ->
+                projectDependencies.map {
+                    @Suppress("DEPRECATION") // Deprecated in 8.11
+                    it.dependencyProject
+                }.forEach { depProject ->
                     addDependency(
                         project = project,
                         configuration =  dependenciesConfig,
@@ -332,6 +346,9 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
     }
 
     companion object {
+        private const val GRADLE_VERSION_MAJOR = 8
+        private const val GRADLE_VERSION_MINOR = 11
+
         const val EXTENSION_NAME = "graphAnalytics"
         const val TASK_GROUP = "graph analytics"
         const val GRAPH_PERSISTENCE_BUILD_SERVICE = "graphPersistence"
