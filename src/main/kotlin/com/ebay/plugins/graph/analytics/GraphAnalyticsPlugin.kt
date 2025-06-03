@@ -122,6 +122,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
             task.apply {
                 dependsOn(gatherProdDependenciesTaskProvider)
                 dependsOn(gatherTestDependenciesTaskProvider)
+                graphFiles.from(consolidatedDependencies)
                 graphFiles.from(testDependenciesFile)
                 graphFiles.from(prodDependenciesFile)
                 outputFile.set(consolidatedFile)
@@ -249,26 +250,27 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                 }
 
                 val projectDependencies = config.allDependencies.filterIsInstance<ProjectDependency>()
-                projectDependencies.map {
-                    @Suppress("DEPRECATION") // Deprecated in 8.11
-                    it.dependencyProject
-                }.forEach { depProject ->
+                projectDependencies.map { it.path }.forEach { depProjectPath ->
                     addDependency(
                         project = project,
                         configuration =  dependenciesConfig,
                         configurationTask = taskProvider,
                         configurationClass = configClass,
-                        dependencyProjectPath = depProject.path,
+                        dependencyProjectPath = depProjectPath,
                         edgeLabel = config.name
                     )
 
                     if (configClass == ConfigurationClass.PRODUCTION) {
                         // For production dependencies we want to link to the consolidated
                         // project graphs of the dependency projects into our own graph
-                        consolidationTaskProvider.configure {
-                            it.dependsOn(depProject.tasks.named(CONSOLIDATION_DEPENDENCIES_RESOLVE_TASK))
-                            it.graphFiles.from(paths.intermediateGraph("consolidatedDependencies", depProject.layout.buildDirectory))
-                        }
+                        consolidatedDependencies.dependencies.add(
+                            project.dependencies.project(
+                                mapOf(
+                                    "path" to depProjectPath,
+                                    "configuration" to CONSOLIDATION_DEPENDENCIES_EXPORT_CONFIGURATION,
+                                )
+                            )
+                        )
                     }
                 }
             }
