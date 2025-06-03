@@ -65,7 +65,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
 
         val selfInfo = createVertexInfo(project, graphExtension)
 
-        val paths = GraphAnalyticsPaths(project, graphPersistenceBuildServiceProvider)
+        val paths = GraphAnalyticsPaths(project.layout.buildDirectory, graphPersistenceBuildServiceProvider)
         val prodDependenciesFile = paths.intermediateGraph("productionDependencies")
         val testDependenciesFile = paths.intermediateGraph("testDependencies")
         val consolidatedFile = paths.intermediateGraph("consolidatedDependencies")
@@ -244,7 +244,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                         configuration =  dependenciesConfig,
                         configurationTask = taskProvider,
                         configurationClass = configClass,
-                        dependencyProject = depProject,
+                        dependencyProjectPath = depProject.path,
                         edgeLabel = config.name
                     )
 
@@ -253,7 +253,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                         // project graphs of the dependency projects into our own graph
                         consolidationTaskProvider.configure {
                             it.dependsOn(depProject.tasks.named(CONSOLIDATION_DEPENDENCIES_RESOLVE_TASK))
-                            it.graphFiles.from(paths.intermediateGraph("consolidatedDependencies", depProject))
+                            it.graphFiles.from(paths.intermediateGraph("consolidatedDependencies", depProject.layout.buildDirectory))
                         }
                     }
                 }
@@ -288,14 +288,14 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         configuration: Configuration,
         configurationTask: TaskProvider<GatherTask>,
         configurationClass: ConfigurationClass,
-        dependencyProject: Project,
+        dependencyProjectPath: String,
         edgeLabel: String,
     ) {
         // We always depend on the production dependencies configuration.  i.e., `testImplementation(foo)` wouldn't
         // depend upon `foo`'s `testImplementation`, it would depend upon `foo`'s `implementation`.
         val newDep = project.dependencies.project(
             mapOf(
-                "path" to dependencyProject.path,
+                "path" to dependencyProjectPath,
                 "configuration" to GATHER_PROD_DEPENDENCIES_EXPORT_CONFIGURATION,
             )
         )
@@ -304,7 +304,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         configurationTask.configure {
             val relation = GraphRelation(
                 from = project.path,
-                to = dependencyProject.path,
+                to = dependencyProjectPath,
                 edge = EdgeInfo().apply {
                     attributes["configuration"] = DefaultAttribute.createAttribute(edgeLabel)
                     attributes["class"] = DefaultAttribute.createAttribute(configurationClass.name)
