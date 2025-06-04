@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        gradle-version: ${{ fromJSON(github.event.inputs.gradle-matrix)}}
+        gradle-version: ${{ fromJSON(inputs.gradle-matrix) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
