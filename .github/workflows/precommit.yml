@@ -1,18 +1,16 @@
 name: PR Build
 on:
   pull_request:
-  workflow_dispatch:
-    inputs:
-      gradle-matrix:
-        description: 'Gradle Matrix'
-        default: '["8.11.1", "8.12.1", "8.13", "8.14.1", "release-candidate", "nightly"]'
-        required: false
 jobs:
   gradle:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        gradle-version: ["8.11.1", "8.12.1", "8.13", "8.14.1", "release-candidate", "nightly"]
+        # wrapper = oldest supported version
+        # current = latest stable version
+        # release-candidate = next stable version
+        # nightly = latest development version
+        gradle-version: ["wrapper", "current", "release-candidate", "nightly"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

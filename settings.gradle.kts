@@ -6,6 +6,10 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("com.gradle.develocity") version("3.19.2")
+}
+
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
@@ -14,3 +18,9 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "graph-analytics-plugin"
+
+develocity {
+    buildScan {
+        server.set("https://gradle.corp.ebay.com")
+    }
+}
