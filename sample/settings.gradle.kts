@@ -9,6 +9,7 @@ pluginManagement {
 
 plugins {
     id("com.ebay.graph-analytics")
+    id("com.gradle.develocity") version("4.0.2")
 }
 
 dependencyResolutionManagement {
@@ -19,6 +20,13 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "graph-analytics-sample"
+
+develocity {
+    buildScan {
+        termsOfUseUrl.set("https://gradle.com/help/legal-terms-of-use")
+        termsOfUseAgree.set("yes")
+    }
+}
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 include(":app")
