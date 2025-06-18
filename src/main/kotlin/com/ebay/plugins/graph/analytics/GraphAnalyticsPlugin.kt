@@ -13,7 +13,6 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.initialization.Settings
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.util.GradleVersion
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.nio.DefaultAttribute
 
@@ -33,10 +32,14 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
 
     private fun applySettings(settings: Settings) {
         // Verify Gradle version compatibility
-        if (GradleVersion.current() < GradleVersion.version(GRADLE_VERSION_MINIMUM)) {
-            throw GradleException("GraphAnalyticsPlugin requires Gradle 8.11 or later " +
-                    "(was: ${settings.gradle.gradleVersion})"
-            )
+        val (major, minor) = settings.gradle.gradleVersion
+            .substringBefore("-") // Remove any qualifier like `-rc-1`
+            .split('.')
+            .take(2)
+        if (major.toInt() < GRADLE_VERSION_MAJOR || minor.toInt() < GRADLE_VERSION_MINOR) {
+            throw GradleException("GraphAnalyticsPlugin requires Gradle " +
+                    "$GRADLE_VERSION_MAJOR.$GRADLE_VERSION_MINOR or later " +
+                    "(was: ${settings.gradle.gradleVersion})")
         }
 
         // Apply the plugin to all projects
@@ -345,7 +348,8 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
     }
 
     companion object {
-        private const val GRADLE_VERSION_MINIMUM = "8.11"
+        private const val GRADLE_VERSION_MAJOR = 8
+        private const val GRADLE_VERSION_MINOR = 11
 
         const val EXTENSION_NAME = "graphAnalytics"
         const val TASK_GROUP = "graph analytics"
