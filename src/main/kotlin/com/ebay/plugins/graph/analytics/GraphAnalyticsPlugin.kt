@@ -34,8 +34,8 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
     private fun applySettings(settings: Settings) {
         // Verify Gradle version compatibility
         if (GradleVersion.current() < GradleVersion.version(GRADLE_VERSION_MINIMUM)) {
-            throw GradleException("GraphAnalyticsPlugin requires Gradle 8.11 or later " +
-                    "(was: ${settings.gradle.gradleVersion})"
+            throw GradleException("GraphAnalyticsPlugin requires Gradle $GRADLE_VERSION_MINIMUM " +
+                    "or later (was: ${settings.gradle.gradleVersion})"
             )
         }
 
