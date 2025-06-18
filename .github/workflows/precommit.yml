@@ -22,10 +22,10 @@ jobs:
         with:
             gradle-version: ${{ matrix.gradle-version }}
       - name: Build Plugin
-        run: ./gradlew build
+        run: gradle build
       - name: Sample Analysis
         working-directory: sample
-        run: ../gradlew graphAnalysis
+        run: gradle graphAnalysis
       - name: Sample Inspection
         working-directory: sample
-        run: ../gradlew :app:graphInspection
+        run: gradle :app:graphInspection
