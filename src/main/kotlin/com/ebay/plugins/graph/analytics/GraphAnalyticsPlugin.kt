@@ -246,8 +246,11 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                     }
                 }
 
-                val projectDependencies = config.allDependencies.filterIsInstance<ProjectDependency>()
-                projectDependencies.map { it.path }.forEach { depProjectPath ->
+                config.allDependencies.configureEach { dependency ->
+                    if (dependency !is ProjectDependency) {
+                        return@configureEach
+                    }
+                    val depProjectPath = dependency.path
                     addDependency(
                         project = project,
                         configuration =  dependenciesConfig,
