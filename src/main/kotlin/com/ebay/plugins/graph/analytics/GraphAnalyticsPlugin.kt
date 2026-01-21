@@ -231,8 +231,6 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
             val classifier = graphExtension.configurationClassifier.convention(ConfigurationClassifierDefault()).get()
             project.configurations.configureEach { config ->
                 val configClass = classifier.classify(config)
-                if (configClass == ConfigurationClass.OTHER) return@configureEach
-
                 val (dependenciesConfig, taskProvider) = when(configClass) {
                     ConfigurationClass.PRODUCTION -> {
                         Pair(prodDependencies, gatherProdDependenciesTaskProvider)
@@ -240,9 +238,9 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                     ConfigurationClass.TEST -> {
                         Pair(testDependencies, gatherTestDependenciesTaskProvider)
                     }
-                    else -> {
-                        // Should never happen
-                        throw(GradleException("Unsupported config class: $configClass"))
+                    ConfigurationClass.OTHER -> {
+                        // We only care about prod and test dependencies
+                        return@configureEach
                     }
                 }
 

@@ -1,6 +1,7 @@
 package com.ebay.plugins.graph.analytics
 
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -11,6 +12,7 @@ import org.jgrapht.graph.DefaultDirectedGraph
  * Base class which can be used by tasks which need to read the graph file as
  * an input (only).
  */
+@CacheableTask
 abstract class BaseGraphInputTask : BaseGraphPersistenceTask() {
     /**
      * The graph input to analyze.
