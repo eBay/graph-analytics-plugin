@@ -2,12 +2,14 @@ package com.ebay.plugins.graph.analytics
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 
 /**
  * Base class used for tasks which need to read and write the graph file.
  */
+@CacheableTask
 abstract class BaseGraphPersistenceTask : DefaultTask() {
     // Pass the graph format in so that version changes invalidate the cache
     @get:Input
