@@ -3,7 +3,7 @@ gradle-pluginPublish = "2.0.0"
 jgrapht = "1.5.2"
 test-hamcrest = "3.0"
 test-mockito = "6.2.2"
-test-testng = "7.11.0"
+test-testng = "7.12.0"
 
 [libraries]
 jgrapht-core = { module = "org.jgrapht:jgrapht-core", version.ref = "jgrapht" }
