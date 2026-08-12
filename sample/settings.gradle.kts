@@ -9,7 +9,7 @@ pluginManagement {
 
 plugins {
     id("com.ebay.graph-analytics")
-    id("com.gradle.develocity") version("4.0.2")
+    id("com.gradle.develocity") version("4.5.0")
 }
 
 dependencyResolutionManagement {
@@ -21,10 +21,30 @@ dependencyResolutionManagement {
 
 rootProject.name = "graph-analytics-sample"
 
+val isCI = System.getenv("CI") != null
+
 develocity {
+    server = "https://community.develocity.cloud"
+    projectId = "ebay"
     buildScan {
-        termsOfUseUrl.set("https://gradle.com/help/legal-terms-of-use")
-        termsOfUseAgree.set("yes")
+        uploadInBackground = !isCI
+        publishing.onlyIf { it.isAuthenticated }
+        obfuscation {
+            ipAddresses { addresses -> addresses.map { _ -> "0.0.0.0" } }
+        }
+    }
+}
+
+buildCache {
+    local {
+        isEnabled = true
+    }
+
+    remote(develocity.buildCache) {
+        isEnabled = true
+        // Check access key presence to avoid build cache errors on PR builds when access key is not present
+        val accessKey = System.getenv("DEVELOCITY_ACCESS_KEY")
+        isPush = isCI && accessKey != null
     }
 }
 
