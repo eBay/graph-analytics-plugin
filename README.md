@@ -2,6 +2,8 @@
 
 # Graph Analytics Plugin
 
+[![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://community.develocity.cloud/scans?search.rootProjectNames=graph-analytics-plugin)
+
 ## About This Project
 
 This [Gradle](https://gradle.org/) plugin was designed to be used in multi-module

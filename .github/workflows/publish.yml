@@ -14,6 +14,8 @@ jobs:
           java-version: 17
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
+        with:
+          develocity-access-key: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
       - name: Build Plugin
         env:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
