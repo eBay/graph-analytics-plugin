@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   release:
     types: [published]
+env:
+  CI: "true"
 jobs:
   gradle:
     runs-on: ubuntu-latest
