@@ -1,6 +1,6 @@
 [versions]
 gradle-pluginPublish = "2.1.1"
-jgrapht = "1.5.2"
+jgrapht = "1.5.3"
 test-hamcrest = "3.0"
 test-mockito = "6.3.0"
 test-testng = "7.12.0"
