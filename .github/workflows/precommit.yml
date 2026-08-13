@@ -16,7 +16,7 @@ jobs:
         # nightly = latest development version
         gradle-version: ["8.11", "wrapper", "current", "release-candidate", "nightly"]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
