@@ -8,8 +8,10 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Category
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.initialization.Settings
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
@@ -93,7 +95,10 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                 }
             }
         project.artifacts.add(GATHER_PROD_DEPENDENCIES_RESOLVE_CONFIGURATION, gatherProdDependenciesTaskProvider)
-        project.createConsumableConfig(GATHER_PROD_DEPENDENCIES_EXPORT_CONFIGURATION).apply {
+        project.createConsumableConfig(
+            GATHER_PROD_DEPENDENCIES_EXPORT_CONFIGURATION,
+            GRAPH_ANALYTICS_KIND_PROD_DEPENDENCIES,
+        ).apply {
             extendsFrom(prodDependencies)
         }
 
@@ -108,7 +113,10 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                 }
             }
         project.artifacts.add(GATHER_TEST_DEPENDENCIES_RESOLVE_CONFIGURATION, gatherTestDependenciesTaskProvider)
-        project.createConsumableConfig(GATHER_TEST_DEPENDENCIES_EXPORT_CONFIGURATION).apply {
+        project.createConsumableConfig(
+            GATHER_TEST_DEPENDENCIES_EXPORT_CONFIGURATION,
+            GRAPH_ANALYTICS_KIND_TEST_DEPENDENCIES,
+        ).apply {
             extendsFrom(testDependencies)
         }
 
@@ -126,7 +134,10 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
             }
         }
         project.artifacts.add(CONSOLIDATION_DEPENDENCIES_RESOLVE_CONFIGURATION, consolidationTaskProvider)
-        project.createConsumableConfig(CONSOLIDATION_DEPENDENCIES_EXPORT_CONFIGURATION).apply {
+        project.createConsumableConfig(
+            CONSOLIDATION_DEPENDENCIES_EXPORT_CONFIGURATION,
+            GRAPH_ANALYTICS_KIND_CONSOLIDATED_DEPENDENCIES,
+        ).apply {
             extendsFrom(consolidatedDependencies)
         }
 
@@ -139,7 +150,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                 outputFile.set(analysisFile)
             }
         }
-        project.createConsumableConfig(ANALYSIS_EXPORT_CONFIGURATION)
+        project.createConsumableConfig(ANALYSIS_EXPORT_CONFIGURATION, GRAPH_ANALYTICS_KIND_ANALYSIS)
         project.artifacts.add(ANALYSIS_EXPORT_CONFIGURATION, analysisTaskProvider)
         project.afterEvaluate {
             graphExtension.analysisTasks.get().forEach { taskProvider ->
@@ -197,12 +208,11 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         // Verification project graph (can include other project graphs to provide a holistic picture)
         val validationDependencies = project.createResolvableConfig(VALIDATION_DEPENDENCIES_RESOLVE_CONFIGURATION).apply {
             dependencies.addAllLater(validationExtension.validatedProjects.map { projectPaths ->
-                projectPaths.map { projectPath ->
-                    project.dependencies.project(
-                        mapOf(
-                            "path" to projectPath,
-                            "configuration" to ANALYSIS_EXPORT_CONFIGURATION,
-                        )
+                projectPaths.filter { it != project.path }.map { projectPath ->
+                    projectDependencyRequiringCapability(
+                        project = project,
+                        dependencyProjectPath = projectPath,
+                        kind = GRAPH_ANALYTICS_KIND_ANALYSIS,
                     )
                 }
             })
@@ -213,7 +223,15 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                 description = "Validate the graph correctness against configured rules"
                 projectPathProp.set(project.path)
                 rootProjectPath.set(project.isolated.rootProject.projectDirectory)
-                inputGraphs.setFrom(validationDependencies)
+                // A project cannot variant-resolve itself ("No variants exist"), so the local
+                // analysis output is used when this project is in the validation set.
+                inputGraphs.setFrom(validationExtension.validatedProjects.map { projectPaths ->
+                    if (projectPaths.contains(project.path)) {
+                        project.files(analysisTaskProvider, validationDependencies)
+                    } else {
+                        validationDependencies
+                    }
+                })
                 outputFile.set(validationReportFile)
                 definedRules.set(validationExtension.rules.map { rulesMap ->
                     rulesMap.values.map { rule -> rule.matcher.describe() }
@@ -251,7 +269,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                     val depProjectPath = dependency.path
                     addDependency(
                         project = project,
-                        configuration =  dependenciesConfig,
+                        configuration = dependenciesConfig,
                         configurationTask = taskProvider,
                         configurationClass = configClass,
                         dependencyProjectPath = depProjectPath,
@@ -262,11 +280,10 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                         // For production dependencies we want to link to the consolidated
                         // project graphs of the dependency projects into our own graph
                         consolidatedDependencies.dependencies.add(
-                            project.dependencies.project(
-                                mapOf(
-                                    "path" to depProjectPath,
-                                    "configuration" to CONSOLIDATION_DEPENDENCIES_EXPORT_CONFIGURATION,
-                                )
+                            projectDependencyRequiringCapability(
+                                project = project,
+                                dependencyProjectPath = depProjectPath,
+                                kind = GRAPH_ANALYTICS_KIND_CONSOLIDATED_DEPENDENCIES,
                             )
                         )
                     }
@@ -307,13 +324,13 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
     ) {
         // We always depend on the production dependencies configuration.  i.e., `testImplementation(foo)` wouldn't
         // depend upon `foo`'s `testImplementation`, it would depend upon `foo`'s `implementation`.
-        val newDep = project.dependencies.project(
-            mapOf(
-                "path" to dependencyProjectPath,
-                "configuration" to GATHER_PROD_DEPENDENCIES_EXPORT_CONFIGURATION,
+        configuration.dependencies.add(
+            projectDependencyRequiringCapability(
+                project = project,
+                dependencyProjectPath = dependencyProjectPath,
+                kind = GRAPH_ANALYTICS_KIND_PROD_DEPENDENCIES,
             )
         )
-        configuration.dependencies.add(newDep)
 
         configurationTask.configure {
             val relation = GraphRelation(
@@ -328,7 +345,20 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         }
     }
 
+    private fun projectDependencyRequiringCapability(
+        project: Project,
+        dependencyProjectPath: String,
+        kind: String,
+    ): ModuleDependency {
+        val dep = project.dependencies.project(mapOf("path" to dependencyProjectPath)) as ModuleDependency
+        dep.capabilities { caps ->
+            caps.requireCapability(graphAnalyticsCapability(kind, dependencyProjectPath))
+        }
+        return dep
+    }
+
     private fun Project.createResolvableConfig(name: String): Configuration {
+        configurations.findByName(name)?.let { return it }
         return configurations.create(name).apply {
             isCanBeConsumed = false
             isCanBeResolved = true
@@ -336,12 +366,28 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         }
     }
 
-    private fun Project.createConsumableConfig(name: String): Configuration {
+    private fun Project.createConsumableConfig(name: String, kind: String): Configuration {
+        configurations.findByName(name)?.let { return it }
         return configurations.create(name).apply {
             isCanBeConsumed = true
             isCanBeResolved = false
             isTransitive = false
-            attributes.attribute(ATTR_CONFIG_TYPE, name)
+            attributes.attribute(
+                Category.CATEGORY_ATTRIBUTE,
+                objects.named(Category::class.java, GRAPH_ANALYTICS_CATEGORY),
+            )
+            // Declaring any outgoing capability replaces the implicit project GAV.
+            outgoing.capability(implicitProjectCapability())
+            outgoing.capability(graphAnalyticsCapability(kind, path))
+        }
+    }
+
+    private fun Project.implicitProjectCapability(): Capability {
+        val owner = this
+        return object : Capability {
+            override fun getGroup(): String = owner.group.toString()
+            override fun getName(): String = owner.name
+            override fun getVersion(): String = owner.version.toString()
         }
     }
 
@@ -357,13 +403,10 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         const val PROJECT_INSPECTION_TASK = "graphInspection"
 
         /**
-         * Attribute used to disambiguate consumable configurations but something other than
-         * their name.
+         * Marker category so these configurations are treated as variants. Consumers must not
+         * request this attribute; selection is by capability constraint only.
          */
-        val ATTR_CONFIG_TYPE: Attribute<String> = Attribute.of(
-            "com.ebay.graph-analytics.type",
-            String::class.java
-        )
+        private const val GRAPH_ANALYTICS_CATEGORY = "graph-analytics"
 
         private const val GATHER_PROD_DEPENDENCIES_RESOLVE_CONFIGURATION = "graphAnalytics_resolvable_prodDependencies"
         private const val GATHER_PROD_DEPENDENCIES_RESOLVE_TASK = "graphProductionDependencies"
@@ -377,8 +420,30 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         private const val CONSOLIDATION_DEPENDENCIES_RESOLVE_TASK = "graphConsolidatedDependencies"
         private const val CONSOLIDATION_DEPENDENCIES_EXPORT_CONFIGURATION = "graphAnalytics_consolidatedDependencies"
 
+        private const val ANALYSIS_EXPORT_CONFIGURATION = "graphAnalytics_analysis"
         private const val VALIDATION_DEPENDENCIES_RESOLVE_CONFIGURATION = "graphAnalytics_resolvable_validationDependencies"
 
-        private const val ANALYSIS_EXPORT_CONFIGURATION = "graphAnalytics_analysis"
+        /**
+         * Capability kinds that distinguish graph-analytics consumable variants.
+         * These encode the former export configuration identity.
+         */
+        const val GRAPH_ANALYTICS_KIND_PROD_DEPENDENCIES = "prod-dependencies"
+        const val GRAPH_ANALYTICS_KIND_TEST_DEPENDENCIES = "test-dependencies"
+        const val GRAPH_ANALYTICS_KIND_CONSOLIDATED_DEPENDENCIES = "consolidated-dependencies"
+        const val GRAPH_ANALYTICS_KIND_ANALYSIS = "analysis"
+
+        /**
+         * Capability coordinate used to select a graph-analytics variant of a project.
+         *
+         * Format: `com.ebay.plugins:graph-analytics-{kind}-{pathId}:1.0`
+         *
+         * [projectPath] is encoded in the capability name (not a variant attribute). Gradle
+         * treats a capability GAV as unique in a resolution graph; a path attribute would
+         * not make two modules providing the same GAV legal in one configuration.
+         */
+        fun graphAnalyticsCapability(kind: String, projectPath: String): String {
+            val pathId = projectPath.trimStart(':').replace(':', '.').ifEmpty { "root" }
+            return "com.ebay.plugins:graph-analytics-$kind-$pathId:1.0"
+        }
     }
 }
