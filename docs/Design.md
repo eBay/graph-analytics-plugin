@@ -19,6 +19,16 @@ collected separately from test dependencies.  These separate graphs are then con
 a single project graph containing a holistic view of the project graph.  Note that each individual
 graph is acyclic _until_ they are combined, at which point the graph may potentially become cyclic.
 
+Each project publishes its graph artifacts as consumable variants.  Sibling and dependent
+projects select those artifacts with capability constraints
+(`com.ebay.plugins:graph-analytics-{kind}-{pathId}:1.0`), not by configuration name and not
+by a custom `com.ebay.graph-analytics.type` attribute.  The project path is part of the
+capability name so each producer is unique in a shared resolvable configuration.  A path
+attribute cannot do that: Gradle uniqueness is the capability GAV, and a missing requested
+attribute is still treated as compatible.  A marker `Category` of `graph-analytics` is
+applied only on the producer so Gradle treats the configuration as a variant; consumers
+do not request that category.
+
 Once the consolidated project graph is created it is then run through an analysis phase.
 The analysis performs computations on each vertex in the graph and adds attributes to record
 the results.  Multiple analysis tasks may be run during this phase to gather or compute different
