@@ -8,9 +8,7 @@ plugins {
 // Sibling consumable configuration that is a real variant (has attributes) but does
 // not declare graph-analytics capabilities. Selection must not pick this or the
 // default jar over the requested graph-analytics capability.
-configurations.create("unrelatedSiblingExport") {
-    isCanBeConsumed = true
-    isCanBeResolved = false
+configurations.consumable("unrelatedSiblingExport") {
     attributes.attribute(
         Category.CATEGORY_ATTRIBUTE,
         objects.named(Category::class.java, "unrelated-sibling"),

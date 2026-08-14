@@ -5,11 +5,15 @@ import com.ebay.plugins.graph.analytics.validation.GraphValidationTask
 import com.ebay.plugins.graph.analytics.validation.RootedVertex
 import com.ebay.plugins.graph.analytics.validation.matchers.GraphMatcher
 import org.gradle.api.GradleException
+import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConsumableConfiguration
+import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.attributes.Category
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.initialization.Settings
@@ -85,7 +89,11 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         val validationReportFile = paths.report("validationReport.txt")
 
         // Production dependencies:
-        val prodDependencies = project.createResolvableConfig(GATHER_PROD_DEPENDENCIES_RESOLVE_CONFIGURATION)
+        val prodDependencyScope = project.createDependencyScopeConfig(GATHER_PROD_DEPENDENCIES_SCOPE_CONFIGURATION)
+        val prodDependencies = project.createResolvableConfig(
+            GATHER_PROD_DEPENDENCIES_RESOLVE_CONFIGURATION,
+            extendsFromConfig = prodDependencyScope,
+        )
         val gatherProdDependenciesTaskProvider = project.tasks.register(GATHER_PROD_DEPENDENCIES_RESOLVE_TASK, GatherTask::class.java)
         gatherProdDependenciesTaskProvider.configure { task ->
                 task.apply {
@@ -94,16 +102,18 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                     outputFile.set(prodDependenciesFile)
                 }
             }
-        project.artifacts.add(GATHER_PROD_DEPENDENCIES_RESOLVE_CONFIGURATION, gatherProdDependenciesTaskProvider)
         project.createConsumableConfig(
             GATHER_PROD_DEPENDENCIES_EXPORT_CONFIGURATION,
             GRAPH_ANALYTICS_KIND_PROD_DEPENDENCIES,
-        ).apply {
-            extendsFrom(prodDependencies)
-        }
+            extendsFromConfig = prodDependencyScope,
+        ).configure { it.outgoing.artifact(gatherProdDependenciesTaskProvider) }
 
         // Test dependencies:
-        val testDependencies = project.createResolvableConfig(GATHER_TEST_DEPENDENCIES_RESOLVE_CONFIGURATION)
+        val testDependencyScope = project.createDependencyScopeConfig(GATHER_TEST_DEPENDENCIES_SCOPE_CONFIGURATION)
+        val testDependencies = project.createResolvableConfig(
+            GATHER_TEST_DEPENDENCIES_RESOLVE_CONFIGURATION,
+            extendsFromConfig = testDependencyScope,
+        )
         val gatherTestDependenciesTaskProvider = project.tasks.register(GATHER_TEST_DEPENDENCIES_RESOLVE_TASK, GatherTask::class.java)
         gatherTestDependenciesTaskProvider.configure { task ->
                 task.apply {
@@ -112,16 +122,18 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                     outputFile.set(testDependenciesFile)
                 }
             }
-        project.artifacts.add(GATHER_TEST_DEPENDENCIES_RESOLVE_CONFIGURATION, gatherTestDependenciesTaskProvider)
         project.createConsumableConfig(
             GATHER_TEST_DEPENDENCIES_EXPORT_CONFIGURATION,
             GRAPH_ANALYTICS_KIND_TEST_DEPENDENCIES,
-        ).apply {
-            extendsFrom(testDependencies)
-        }
+            extendsFromConfig = testDependencyScope,
+        ).configure { it.outgoing.artifact(gatherTestDependenciesTaskProvider) }
 
         // Consolidated project graph
-        val consolidatedDependencies = project.createResolvableConfig(CONSOLIDATION_DEPENDENCIES_RESOLVE_CONFIGURATION)
+        val consolidatedDependencyScope = project.createDependencyScopeConfig(CONSOLIDATION_DEPENDENCIES_SCOPE_CONFIGURATION)
+        val consolidatedDependencies = project.createResolvableConfig(
+            CONSOLIDATION_DEPENDENCIES_RESOLVE_CONFIGURATION,
+            extendsFromConfig = consolidatedDependencyScope,
+        )
         val consolidationTaskProvider = project.tasks.register(CONSOLIDATION_DEPENDENCIES_RESOLVE_TASK, ConsolidationTask::class.java)
         consolidationTaskProvider.configure { task ->
             task.apply {
@@ -133,13 +145,11 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                 outputFile.set(consolidatedFile)
             }
         }
-        project.artifacts.add(CONSOLIDATION_DEPENDENCIES_RESOLVE_CONFIGURATION, consolidationTaskProvider)
         project.createConsumableConfig(
             CONSOLIDATION_DEPENDENCIES_EXPORT_CONFIGURATION,
             GRAPH_ANALYTICS_KIND_CONSOLIDATED_DEPENDENCIES,
-        ).apply {
-            extendsFrom(consolidatedDependencies)
-        }
+            extendsFromConfig = consolidatedDependencyScope,
+        ).configure { it.outgoing.artifact(consolidationTaskProvider) }
 
         // Project graph analysis task
         val analysisTaskProvider = project.tasks.register(ANALYSIS_TASK, ConsolidationTask::class.java)
@@ -151,7 +161,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
             }
         }
         project.createConsumableConfig(ANALYSIS_EXPORT_CONFIGURATION, GRAPH_ANALYTICS_KIND_ANALYSIS)
-        project.artifacts.add(ANALYSIS_EXPORT_CONFIGURATION, analysisTaskProvider)
+            .configure { it.outgoing.artifact(analysisTaskProvider) }
         project.afterEvaluate {
             graphExtension.analysisTasks.get().forEach { taskProvider ->
                 taskProvider.configure { task ->
@@ -206,8 +216,13 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         }
 
         // Verification project graph (can include other project graphs to provide a holistic picture)
-        val validationDependencies = project.createResolvableConfig(VALIDATION_DEPENDENCIES_RESOLVE_CONFIGURATION).apply {
-            dependencies.addAllLater(validationExtension.validatedProjects.map { projectPaths ->
+        val validationDependencyScope = project.createDependencyScopeConfig(VALIDATION_DEPENDENCIES_SCOPE_CONFIGURATION)
+        val validationDependencies = project.createResolvableConfig(
+            VALIDATION_DEPENDENCIES_RESOLVE_CONFIGURATION,
+            extendsFromConfig = validationDependencyScope,
+        )
+        validationDependencyScope.configure { validationConfig ->
+            validationConfig.dependencies.addAllLater(validationExtension.validatedProjects.map { projectPaths ->
                 projectPaths.filter { it != project.path }.map { projectPath ->
                     projectDependencyRequiringCapability(
                         project = project,
@@ -229,7 +244,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                     if (projectPaths.contains(project.path)) {
                         project.files(analysisTaskProvider, validationDependencies)
                     } else {
-                        validationDependencies
+                        project.files(validationDependencies)
                     }
                 })
                 outputFile.set(validationReportFile)
@@ -251,10 +266,10 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                 val configClass = classifier.classify(config)
                 val (dependenciesConfig, taskProvider) = when(configClass) {
                     ConfigurationClass.PRODUCTION -> {
-                        Pair(prodDependencies, gatherProdDependenciesTaskProvider)
+                        Pair(prodDependencyScope, gatherProdDependenciesTaskProvider)
                     }
                     ConfigurationClass.TEST -> {
-                        Pair(testDependencies, gatherTestDependenciesTaskProvider)
+                        Pair(testDependencyScope, gatherTestDependenciesTaskProvider)
                     }
                     ConfigurationClass.OTHER -> {
                         // We only care about prod and test dependencies
@@ -269,7 +284,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                     val depProjectPath = dependency.path
                     addDependency(
                         project = project,
-                        configuration = dependenciesConfig,
+                        configurationName = dependenciesConfig.name,
                         configurationTask = taskProvider,
                         configurationClass = configClass,
                         dependencyProjectPath = depProjectPath,
@@ -279,7 +294,8 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
                     if (configClass == ConfigurationClass.PRODUCTION) {
                         // For production dependencies we want to link to the consolidated
                         // project graphs of the dependency projects into our own graph
-                        consolidatedDependencies.dependencies.add(
+                        project.dependencies.add(
+                            consolidatedDependencyScope.name,
                             projectDependencyRequiringCapability(
                                 project = project,
                                 dependencyProjectPath = depProjectPath,
@@ -316,7 +332,7 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
 
     private fun addDependency(
         project: Project,
-        configuration: Configuration,
+        configurationName: String,
         configurationTask: TaskProvider<GatherTask>,
         configurationClass: ConfigurationClass,
         dependencyProjectPath: String,
@@ -324,7 +340,8 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
     ) {
         // We always depend on the production dependencies configuration.  i.e., `testImplementation(foo)` wouldn't
         // depend upon `foo`'s `testImplementation`, it would depend upon `foo`'s `implementation`.
-        configuration.dependencies.add(
+        project.dependencies.add(
+            configurationName,
             projectDependencyRequiringCapability(
                 project = project,
                 dependencyProjectPath = dependencyProjectPath,
@@ -357,28 +374,42 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
         return dep
     }
 
-    private fun Project.createResolvableConfig(name: String): Configuration {
-        configurations.findByName(name)?.let { return it }
-        return configurations.create(name).apply {
-            isCanBeConsumed = false
-            isCanBeResolved = true
-            isTransitive = false
+    private fun Project.createDependencyScopeConfig(
+        name: String,
+    ): NamedDomainObjectProvider<DependencyScopeConfiguration> {
+        return configurations.dependencyScope(name) { config ->
+            config.isTransitive = false
         }
     }
 
-    private fun Project.createConsumableConfig(name: String, kind: String): Configuration {
-        configurations.findByName(name)?.let { return it }
-        return configurations.create(name).apply {
-            isCanBeConsumed = true
-            isCanBeResolved = false
-            isTransitive = false
-            attributes.attribute(
-                Category.CATEGORY_ATTRIBUTE,
-                objects.named(Category::class.java, GRAPH_ANALYTICS_CATEGORY),
-            )
-            // Declaring any outgoing capability replaces the implicit project GAV.
-            outgoing.capability(implicitProjectCapability())
-            outgoing.capability(graphAnalyticsCapability(kind, path))
+    private fun Project.createResolvableConfig(
+        name: String,
+        extendsFromConfig: NamedDomainObjectProvider<out Configuration>,
+    ): NamedDomainObjectProvider<ResolvableConfiguration> {
+        return configurations.resolvable(name) { config ->
+            config.isTransitive = false
+            config.extendsFrom(extendsFromConfig.get())
+        }
+    }
+
+    private fun Project.createConsumableConfig(
+        name: String,
+        kind: String,
+        extendsFromConfig: NamedDomainObjectProvider<out Configuration>? = null,
+    ): NamedDomainObjectProvider<ConsumableConfiguration> {
+        return configurations.consumable(name) { config ->
+            with(config) {
+                isTransitive = false
+                attributes.attribute(
+                    Category.CATEGORY_ATTRIBUTE,
+                    objects.named(Category::class.java, GRAPH_ANALYTICS_CATEGORY),
+                )
+                // Declaring any outgoing capability replaces the implicit project GAV.
+                outgoing.capability(implicitProjectCapability())
+                outgoing.capability(graphAnalyticsCapability(kind, path))
+
+            }
+            extendsFromConfig?.let { config.extendsFrom(it.get()) }
         }
     }
 
@@ -408,19 +439,23 @@ internal class GraphAnalyticsPlugin : Plugin<Any> {
          */
         private const val GRAPH_ANALYTICS_CATEGORY = "graph-analytics"
 
+        private const val GATHER_PROD_DEPENDENCIES_SCOPE_CONFIGURATION = "graphAnalytics_dependencies_prodDependencies"
         private const val GATHER_PROD_DEPENDENCIES_RESOLVE_CONFIGURATION = "graphAnalytics_resolvable_prodDependencies"
         private const val GATHER_PROD_DEPENDENCIES_RESOLVE_TASK = "graphProductionDependencies"
         private const val GATHER_PROD_DEPENDENCIES_EXPORT_CONFIGURATION = "graphAnalytics_prodDependencies"
 
+        private const val GATHER_TEST_DEPENDENCIES_SCOPE_CONFIGURATION = "graphAnalytics_dependencies_testDependencies"
         private const val GATHER_TEST_DEPENDENCIES_RESOLVE_CONFIGURATION = "graphAnalytics_resolvable_testDependencies"
         private const val GATHER_TEST_DEPENDENCIES_RESOLVE_TASK = "graphTestDependencies"
         private const val GATHER_TEST_DEPENDENCIES_EXPORT_CONFIGURATION = "graphAnalytics_testDependencies"
 
+        private const val CONSOLIDATION_DEPENDENCIES_SCOPE_CONFIGURATION = "graphAnalytics_dependencies_consolidatedDependencies"
         private const val CONSOLIDATION_DEPENDENCIES_RESOLVE_CONFIGURATION = "graphAnalytics_resolvable_consolidatedDependencies"
         private const val CONSOLIDATION_DEPENDENCIES_RESOLVE_TASK = "graphConsolidatedDependencies"
         private const val CONSOLIDATION_DEPENDENCIES_EXPORT_CONFIGURATION = "graphAnalytics_consolidatedDependencies"
 
         private const val ANALYSIS_EXPORT_CONFIGURATION = "graphAnalytics_analysis"
+        private const val VALIDATION_DEPENDENCIES_SCOPE_CONFIGURATION = "graphAnalytics_dependencies_validationDependencies"
         private const val VALIDATION_DEPENDENCIES_RESOLVE_CONFIGURATION = "graphAnalytics_resolvable_validationDependencies"
 
         /**
