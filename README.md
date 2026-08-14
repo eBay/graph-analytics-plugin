@@ -67,7 +67,7 @@ Although the plugin is designed to be extensible, it comes with a number of buil
 | `degree`                | The total number of incoming (dependents) and outgoing (dependencies) a project has                                                                                              |
 | `inDegree`              | The number of dependents which depend upon the project                                                                                                                           |
 | `outDegree`             | The number of dependencies which the project declares                                                                                                                            |
-| `height`                | The size of the longest path in the project's tree of dependencies                                                                                                               |
+| `height`                | The number of breadth-first dependency levels from the project down to a leaf. A project with no further project dependencies has height 1.                                      |
 | `networkAbove`          | The total number of dependant projects which depend upon the project.  This is useful to understand the number of projects impacted by a change to this project.                 |
 | `networkBelow`          | The total number of dependency projects which this project depends upon.  This is useful to understand the number of projects which would affect this project when changed.      |
 | `betweennessCentrality` | Calculates the [Betweenness Centrality](https://en.wikipedia.org/wiki/Betweenness_centrality) value for the project                                                              |
