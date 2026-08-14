@@ -1,6 +1,9 @@
 name: PR Build
 on:
   pull_request:
+  schedule:
+    # Runs at 00:00 UTC on the 1st day of every month to continuously test against new Gradle versions
+    - cron: '0 0 1 * *'
 env:
   CI: "true"
 jobs:
