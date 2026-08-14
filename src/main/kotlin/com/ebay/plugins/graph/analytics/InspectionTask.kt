@@ -27,6 +27,38 @@ internal abstract class InspectionTask : BaseGraphInputTask() {
     @get:Optional // By default we use the project that the task was run against
     internal abstract var projectPath: String?
 
+    @get:Input
+    @set:Option(
+        option = "report-cycles",
+        description = "Include the dependency cycles report section (default: $DEFAULT_REPORT_CYCLES)"
+    )
+    @get:Optional
+    internal abstract var reportCycles: Boolean?
+
+    @get:Input
+    @set:Option(
+        option = "report-top-nodes",
+        description = "Include the top nodes report section (default: $DEFAULT_REPORT_TOP_NODES)"
+    )
+    @get:Optional
+    internal abstract var reportTopNodes: Boolean?
+
+    @get:Input
+    @set:Option(
+        option = "report-dep-tree",
+        description = "Include the dependency tree report section (default: $DEFAULT_REPORT_DEP_TREE)"
+    )
+    @get:Optional
+    internal abstract var reportDepTree: Boolean?
+
+    @get:Input
+    @set:Option(
+        option = "top",
+        description = "Number of top project nodes to include in the report (default: $DEFAULT_TOP_N)"
+    )
+    @get:Optional
+    internal abstract var topN: Int?
+
     @get:OutputFile
     internal abstract val outputFile: RegularFileProperty
 
@@ -40,12 +72,17 @@ internal abstract class InspectionTask : BaseGraphInputTask() {
             appendLine("Project inspection report for: $targetProject ${selfInfo.attributes}")
             appendLine()
 
-            dependencyCyclesReport(graph, selfInfo)
-            topNodesReport(graph, selfInfo)
-
-            append("Dependency tree:\n")
-            addDependency(graph = graph, indent = "", vertex = selfInfo)
-            append("* Indicates a vertex that has already been rendered\n")
+            if (reportCycles ?: DEFAULT_REPORT_CYCLES) {
+                dependencyCyclesReport(graph, selfInfo)
+            }
+            if (reportTopNodes ?: DEFAULT_REPORT_TOP_NODES) {
+                topNodesReport(graph, selfInfo)
+            }
+            if (reportDepTree ?: DEFAULT_REPORT_DEP_TREE) {
+                append("Dependency tree:\n")
+                addDependency(graph = graph, indent = "", vertex = selfInfo)
+                append("* Indicates a vertex that has already been rendered\n")
+            }
         }.replace("\n", System.lineSeparator())
 
         outputFile.asFile.get().writeText(report)
@@ -168,7 +205,7 @@ internal abstract class InspectionTask : BaseGraphInputTask() {
         }.map { (key, _) -> key }.toSortedSet()
 
         allNumericAttrNames.forEach { attrName ->
-            topNodesReportForMetric(allDependencies, attrName)
+            topNodesReportForMetric(allDependencies, attrName, topN ?: DEFAULT_TOP_N)
         }
     }
 
@@ -177,7 +214,8 @@ internal abstract class InspectionTask : BaseGraphInputTask() {
      */
     private fun StringBuilder.topNodesReportForMetric(
         allDependencies: Set<VertexInfo>,
-        attrName: String
+        attrName: String,
+        topN: Int,
     ) {
         val metricValues = allDependencies.mapNotNull { node ->
             node.attributes[attrName]?.value?.toDoubleOrNull()?.let {
@@ -185,10 +223,10 @@ internal abstract class InspectionTask : BaseGraphInputTask() {
             }
         }.sortedByDescending { (_, value) ->
             value
-        }.take(TOP_N).map { it.first }
+        }.take(topN).map { it.first }
 
         if (metricValues.isNotEmpty()) {
-            appendLine("Top $TOP_N dependencies by '$attrName':")
+            appendLine("Top $topN dependencies by '$attrName':")
             metricValues.forEachIndexed { index, node ->
                 appendLine("\t${index + 1}: ${node.attributes[attrName]} -- ${node.path} ${node.attributes}")
             }
@@ -235,7 +273,10 @@ internal abstract class InspectionTask : BaseGraphInputTask() {
     }
 
     companion object {
-        private const val TOP_N = 10
+        private const val DEFAULT_TOP_N = 10
+        private const val DEFAULT_REPORT_CYCLES = true
+        private const val DEFAULT_REPORT_TOP_NODES = true
+        private const val DEFAULT_REPORT_DEP_TREE = true
         private val MAX_TRAVERSAL_DURATION = Duration.ofMinutes(5)
     }
 }
